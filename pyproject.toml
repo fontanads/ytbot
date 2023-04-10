@@ -4,9 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["fontanads <fontanads@gmail.com>"]
 readme = "README.md"
+packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+python-decouple = "^3.8"
 
 
 [tool.poetry.group.analytics.dependencies]
@@ -20,12 +22,16 @@ google-api-python-client = "^2.84.0"
 google-auth-oauthlib = "^1.0.0"
 google-auth-httplib2 = "^0.1.0"
 google-auth = "^2.17.2"
+google-cloud-bigquery = "^3.9.0"
+db-dtypes = "^1.1.1"
 
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.22.0"
 ipywidgets = "^8.0.6"
 jupyterlab = "^3.6.3"
+black = "^23.3.0"
+flake8 = "^6.0.0"
 
 
 [tool.poetry.group.test.dependencies]
@@ -34,8 +40,20 @@ tox = "^4.4.11"
 coverage = "^7.2.3"
 
 [tool.pytest.ini_options]
-addopts = "--cov=ytbot --cov-report=term-missing --cov-report=html"
+addopts = "-v -s"
 testpaths = ["tests"]
+
+# settings for black formatter
+[tool.black]
+extend-exclude = '''
+^( # Exclude all non-Python files
+   (?<!\.py)\$
+)
+'''
+check = true
+source = ["./"]
+verbose = true
+
 
 [build-system]
 requires = ["poetry-core"]
