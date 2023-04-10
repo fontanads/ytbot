@@ -27,17 +27,18 @@ class YouTube:
     def search_by_topic(
         self,
         topic=None,
-        type="video",
+        obj_type="video",
         max_results=10,
         order="viewCount",
         published_after=None,
         published_before=None,
         region_code="US",
+        pageToken=""
     ):
         """Search youtube videos by topic."""
 
         if not published_after:
-            published_after = datetime.today() + timedelta(days=-7)
+            published_after = datetime.today() + timedelta(days=-14)
             published_after = published_after.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         if not published_before:
@@ -49,7 +50,7 @@ class YouTube:
         ), "published_after must be before published_before"
 
         request = self.service.search().list(
-            type=type,
+            type=obj_type,
             q=topic,
             channelType="any",
             regionCode=region_code,
@@ -57,10 +58,10 @@ class YouTube:
             maxResults=max_results,
             publishedAfter=published_after,
             publishedBefore=published_before,
-            part="snippet",
-            fields="items(id/videoId,snippet(publishedAt, channelId, channelTitle, title))",
+            part="id,snippet",
+            fields="kind,pageInfo,nextPageToken,items(id/videoId,snippet(publishedAt, channelId, channelTitle, title))",
+            pageToken=pageToken
         )
-
         return request.execute()
 
     def get_channel_info(self, channel_id):
@@ -74,5 +75,16 @@ class YouTube:
         request = self.service.videos().list(
             part="snippet,contentDetails,statistics", id=video_id
         )
-
         return request.execute()
+
+    def paginated_search_by_topic(self, topic=None, max_results=100, next_page_token=None, **kwargs):
+        # paginated search
+        data = []
+        while len(data) < max_results:
+            response = self.search_by_topic(topic=topic, max_results=max_results, pageToken=next_page_token, **kwargs)
+            data.extend(response["items"])
+            next_page_token = response.get("nextPageToken")
+            if not next_page_token:
+                break
+
+        return data

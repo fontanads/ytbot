@@ -37,7 +37,7 @@ def test_download_table(bigquery_client):
 if __name__ == "__main__":
     bigquery_client = BigQueryClient(project_id="sandbox-381517")
     videos_table = read_videos_table()
-    # test_client(bigquery_client)
-    # test_upload_dataframe(bigquery_client, videos_table)
+    test_client(bigquery_client)
+    test_upload_dataframe(bigquery_client, videos_table)
     test_download_table(bigquery_client)
     pass
