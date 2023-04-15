@@ -12,9 +12,9 @@ python-decouple = "^3.8"
 
 
 [tool.poetry.group.analytics.dependencies]
-pandas = "^2.0.0"
+pandas = "<2.0"
 numpy = "^1.24.2"
-altair = "^4.2.2"
+altair = "<5.0"
 
 
 [tool.poetry.group.cloud.dependencies]
@@ -39,8 +39,12 @@ pytest = "^7.3.0"
 tox = "^4.4.11"
 coverage = "^7.2.3"
 
+
+[tool.poetry.group.dataviz.dependencies]
+streamlit = "^1.21.0"
+
 [tool.pytest.ini_options]
-addopts = "-v -s"
+addopts = "-v -s --tb=short"
 testpaths = ["tests"]
 
 # settings for black formatter

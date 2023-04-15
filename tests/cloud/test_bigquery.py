@@ -1,6 +1,6 @@
 from src.cloud.bigquery import BigQueryClient
 from tests.cloud.conftest import read_videos_table
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 def test_client(bigquery_client):
@@ -9,7 +9,7 @@ def test_client(bigquery_client):
 
 
 def test_upload_dataframe(bigquery_client, videos_table):
-    videos_table['dt'] = datetime.today() + timedelta(days=-1)
+    videos_table['dt'] = datetime.today()
     bigquery_client.upload_dataframe(
         dataset_id="youtube",
         table_id="videos",

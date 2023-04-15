@@ -9,6 +9,21 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
 
 
+# pagination wrapper for methods of api
+def paginate(func):
+    def wrapper(*args, **kwargs):
+        # paginated search
+        data = []
+        while len(data) < kwargs.get("max_results", 100):
+            response = func(*args, **kwargs)
+            data.extend(response["items"])
+            next_page_token = response.get("nextPageToken")
+            if not next_page_token:
+                break
+        return data
+    return wrapper
+
+
 class YouTube:
     # initialize youtube api credentials
     def __init__(self):
@@ -24,6 +39,7 @@ class YouTube:
             self.service_name, self.version, credentials=self.credentials
         )
 
+    @paginate
     def search_by_topic(
         self,
         topic=None,
@@ -71,20 +87,19 @@ class YouTube:
 
         return request.execute()
 
-    def get_video_info(self, video_id):
-        request = self.service.videos().list(
-            part="snippet,contentDetails,statistics", id=video_id
-        )
-        return request.execute()
-
-    def paginated_search_by_topic(self, topic=None, max_results=100, next_page_token=None, **kwargs):
-        # paginated search
+    def get_video_info(self, video_ids, max_videos_per_batch=50):
         data = []
-        while len(data) < max_results:
-            response = self.search_by_topic(topic=topic, max_results=max_results, pageToken=next_page_token, **kwargs)
-            data.extend(response["items"])
-            next_page_token = response.get("nextPageToken")
-            if not next_page_token:
-                break
-
+        ids_gen = self.get_ids_batch(video_ids, max_videos_per_batch)  # batch generator
+        while len(data) < len(video_ids):
+            ids_batch = next(ids_gen)
+            request = self.service.videos().list(
+                part="snippet,contentDetails,statistics", id=ids_batch,
+                maxResults=max_videos_per_batch
+            )
+            data.extend(request.execute()["items"])
         return data
+
+    @staticmethod
+    def get_ids_batch(ids, batch_size):
+        for i in range(0, len(ids), batch_size):
+            yield ids[i:i + batch_size]

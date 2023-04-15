@@ -1,6 +1,7 @@
 from google.cloud import bigquery
 import pandas as pd
 from google.api_core.exceptions import NotFound
+from src.helpers.logs import log_message
 
 
 class BigQueryClient:
@@ -9,6 +10,12 @@ class BigQueryClient:
         self.project_id = project_id
         self.client = bigquery.Client(project=self.project_id)
 
+    def get_table_schema(self, dataset_id, table_id):
+        dataset_ref = bigquery.DatasetReference(project=self.project_id, dataset_id=dataset_id)
+        table_ref = bigquery.TableReference(dataset_ref=dataset_ref, table_id=table_id)
+        return self.client.get_table(table_ref).schema
+
+    @log_message(start_message="Uploading data to BigQuery...", end_message="Data uploaded successfully.")
     def upload_dataframe(self, dataset_id, table_id, df, overwrite_partition=True, delete_table=False, partition_field=None):
         dataset_ref = bigquery.DatasetReference(project=self.project_id, dataset_id=dataset_id)
         table_ref = bigquery.TableReference(dataset_ref=dataset_ref, table_id=table_id)
@@ -47,6 +54,9 @@ class BigQueryClient:
         else:
             timestamp_field = self.return_first_timestamp_field(table.schema)
 
+        # truncate date to day
+        timestamp_field = timestamp_field.replace(hour=0, minute=0, second=0, microsecond=0)
+
         # Insert the data into the table
         job_config = bigquery.LoadJobConfig(
             create_disposition=bigquery.CreateDisposition.CREATE_IF_NEEDED,
@@ -61,7 +71,7 @@ class BigQueryClient:
 
     def download_table(self, dataset_id, table_id, columns=None, query=None, limit=100):
         if query:
-            table = self.client.query(query.format(dataset_id=dataset_id, table_id=table_id)).to_dataframe()
+            table = self.client.query(query, project=self.project_id).to_dataframe()
         else:
             dataset_ref = bigquery.DatasetReference(project=self.project_id, dataset_id=dataset_id)
             table_ref = bigquery.TableReference(dataset_ref=dataset_ref, table_id=table_id)
@@ -146,3 +156,8 @@ class BigQueryClient:
                 df[column_name] = df[column_name].apply(lambda x: x.isoformat())
                 df[column_name] = df[column_name].astype("string")
         return df
+
+
+if __name__ == '__main__':
+    bq = BigQueryClient(project_id="sandbox-381517")
+    print(bq.get_table_schema('youtube', 'trending_US'))

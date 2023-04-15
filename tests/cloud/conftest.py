@@ -5,6 +5,7 @@ import pandas as pd
 def read_videos_table():
     return pd.read_json("tests/data/videos_table.json")
 
+
 @pytest.fixture(scope="module")
 def videos_table():
     return read_videos_table()
