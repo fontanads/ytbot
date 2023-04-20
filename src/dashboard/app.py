@@ -71,13 +71,14 @@ def main():
         start_date = start_date
 
     date_range = [start_date, end_date]
-    # # Download data from BigQuery
+    # Download data from BigQuery
     df = download_table(country_code, date_range)
 
     # Divide the page into two columns
     col1, col2 = st.columns(2)
 
-    # # Create charts
+    # Create charts
+    # TODO: there are repeated rows in the dataset, find out why and fix it
     max_videos = st.slider('Select max number of videos to show:', min_value=5, max_value=20, value=10)
     view_count_chart_obj = view_count_chart(df, max_videos=max_videos)
     col1.altair_chart(view_count_chart_obj, use_container_width=True)

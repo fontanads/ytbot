@@ -43,11 +43,6 @@ class BigQueryClient:
         if not table_schema:
             table_schema = self.generate_schema_from_dataframe(columns=df.columns, dtypes=df.dtypes)
 
-        # Serialize datetime objects to ISO format
-        # Convert the dataframe to a list of dictionaries
-        df = self.covert_dataframe_timestamp_columns_to_isoformat(df)
-        rows = df.to_dict('records')
-
         # Find the timestamp field to use for partitioning
         if partition_field:
             timestamp_field = partition_field
@@ -55,7 +50,13 @@ class BigQueryClient:
             timestamp_field = self.return_first_timestamp_field(table.schema)
 
         # truncate date to day
-        timestamp_field = timestamp_field.replace(hour=0, minute=0, second=0, microsecond=0)
+        df[timestamp_field] = df[timestamp_field].dt.floor('D')
+
+        # Serialize datetime objects to ISO format
+        df = self.covert_dataframe_timestamp_columns_to_isoformat(df)
+
+        # Convert the dataframe to a list of dictionaries
+        rows = df.to_dict('records')
 
         # Insert the data into the table
         job_config = bigquery.LoadJobConfig(

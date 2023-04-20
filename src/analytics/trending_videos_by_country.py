@@ -9,7 +9,7 @@ if __name__ == "__main__":
     youtube_api = YouTube()
 
     max_videos_per_batch = 50
-    max_trending_videos = 200
+    max_trending_videos = 1000
     region_code = "US"
     published_after = (datetime.today() - timedelta(days=7))\
         .strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -40,6 +40,7 @@ if __name__ == "__main__":
     # Upload to BigQuery
     bigquery_client = BigQueryClient(project_id="sandbox-381517")
     df['dt'] = datetime.today()
+    df['dt'] = pd.to_datetime(df['dt'])
     bigquery_client.upload_dataframe(
         dataset_id="youtube",
         table_id=f"trending_{region_code}",
