@@ -6,19 +6,20 @@ from src.cloud.bigquery import BigQueryClient
 
 # function to download the data from BigQuery
 @st.cache_data()
-def download_table(country_code, date_range, dataset_id="youtube", table_prefix="trending"):
+def download_table(country_code, date_range, dataset_id="youtube", table_id="trending"):
     """
     Downloads data from BigQuery table for given country code and date range
     """
     # create a BigQuery client object
     bigquery_client = BigQueryClient(project_id="sandbox-381517")
-    table_id = f"{table_prefix}_{country_code}"
+
     # construct SQL query to download data for the given country code and date range
     query = f"""
             SELECT *
             FROM `{dataset_id}.{table_id}`
             WHERE published_at >= '{date_range[0].strftime('%Y-%m-%d')}'
             AND published_at <= '{date_range[1].strftime('%Y-%m-%d')}'
+            AND region_code = '{country_code}'
             """
 
     # download the table
@@ -56,7 +57,7 @@ def main():
     st.write('This dashboard has been created using Chat GPT in collaboration with the author.')
 
     # Get user input
-    countries = ['US', 'GB', 'IN', 'JP']
+    countries = ["US", "UK", "BR", "DE", "FR", "MX"]
     country_code = st.sidebar.selectbox('Select a country code:', countries)
     end_date = datetime.now().date()
     start_date = st.date_input('Select start date:', value=(end_date - timedelta(days=7)))

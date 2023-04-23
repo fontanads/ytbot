@@ -87,6 +87,7 @@ class BigQueryClient:
         return table
 
     def _delete_partition_data(self, table_ref, df, partition_field='dt'):
+        # TODO: add extra masks like region to be considered when deleting partitions
         partition_values = df[partition_field]\
             .apply(lambda x: x.replace(hour=0, minute=0, second=0, microsecond=0).strftime('%Y-%m-%d'))\
             .unique().tolist()

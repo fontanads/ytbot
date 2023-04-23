@@ -13,13 +13,22 @@ scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
 def paginate(func):
     def wrapper(*args, **kwargs):
         # paginated search
+        item_ids = set()
         data = []
         while len(data) < kwargs.get("max_results", 100):
             response = func(*args, **kwargs)
-            data.extend(response["items"])
+            items = response["items"]
+            for item in items:
+                item_id = list(item['id'].values())[0]
+                if item_id not in item_ids:
+                    item_ids.add(item_id)
+                    data.append(item)
+                if len(data) >= kwargs.get("max_results", 100):
+                    break
             next_page_token = response.get("nextPageToken")
             if not next_page_token:
                 break
+            kwargs["pageToken"] = next_page_token
         return data
     return wrapper
 
