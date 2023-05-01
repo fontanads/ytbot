@@ -3,6 +3,8 @@
 This is a personal project experimenting with the YouTube API.  
 This was made to practice and for fun, so don't expect much from it, it is a WIP without a deadline.  
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/CENftD5GBHo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 _Disclaimer_: some code has been written with help of our coding buddy Chat GPT and GitHub Copilot on VS Code, which was also a part of the project - experimenting with AI aid in writing code. However, almost every snippet that came out of the generative AI outputs has been modified to some extent. In general, my experience is iteratively going back and forth until you achieve the functionality you desired. So I'd say this is more like an "AI-in-the-loop" codestyle.
 
 Current functionality includes:
