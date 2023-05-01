@@ -4,16 +4,17 @@ import altair as alt
 from datetime import datetime, timedelta
 from src.cloud.bigquery import BigQueryClient
 from src.dashboard.charts import ChannelCharts
+from src.constants import DEFAULT_GCP_PROJECT, DEFAULT_BQ_DATASET, TRENDING_TABLE_ID
 
 
 # function to download the data from BigQuery
 @st.cache_data()
-def download_table(country_code, date_range, dataset_id="youtube", table_id="trending"):
+def download_table(country_code, date_range, dataset_id=DEFAULT_BQ_DATASET, table_id=TRENDING_TABLE_ID):
     """
     Downloads data from BigQuery table for given country code and date range
     """
     # create a BigQuery client object
-    bigquery_client = BigQueryClient(project_id="sandbox-381517")
+    bigquery_client = BigQueryClient(project_id=DEFAULT_GCP_PROJECT)
 
     # construct SQL query to download data for the given country code and date range
     query = f"""

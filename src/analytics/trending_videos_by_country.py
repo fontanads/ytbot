@@ -1,15 +1,18 @@
+from datetime import datetime, timedelta
+import pandas as pd
+from googleapiclient.errors import HttpError
 from src.cloud.bigquery import BigQueryClient
 from src.core.youtube import YouTube
-import pandas as pd
-from datetime import datetime, timedelta
-from googleapiclient.errors import HttpError
+from src.constants import (DEFAULT_BQ_DATASET,
+                           DEFAULT_GCP_PROJECT,
+                           MAX_VIDEOS_PER_BATCH,
+                           TRENDING_TABLE_ID)
 
 
 if __name__ == "__main__":
 
     youtube_api = YouTube()
 
-    max_videos_per_batch = 50
     max_trending_videos = 1000
     regions = ["US", "UK", "BR", "DE", "FR", "MX"]
     dataframes_list = []
@@ -25,7 +28,7 @@ if __name__ == "__main__":
                 published_after=published_after)
 
             videos_ids = [video["id"]["videoId"] for video in trending_videos]
-            videos_info = youtube_api.get_video_info(videos_ids, max_videos_per_batch=max_videos_per_batch)
+            videos_info = youtube_api.get_video_info(videos_ids, max_videos_per_batch=MAX_VIDEOS_PER_BATCH)
             results = []
             for video in videos_info:
                 vid_info = {
@@ -69,12 +72,12 @@ if __name__ == "__main__":
 
     # TODO: overwrite partition masked by region_code
     # Upload to BigQuery
-    bigquery_client = BigQueryClient(project_id="sandbox-381517")
+    bigquery_client = BigQueryClient(project_id=DEFAULT_GCP_PROJECT)
     df['dt'] = datetime.today()
     df['dt'] = pd.to_datetime(df['dt'])
     bigquery_client.upload_dataframe(
-        dataset_id="youtube",
-        table_id="trending",
+        dataset_id=DEFAULT_BQ_DATASET,
+        table_id=TRENDING_TABLE_ID,
         df=df,
         overwrite_partition=True,
         delete_table=False,
