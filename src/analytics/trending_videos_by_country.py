@@ -11,6 +11,7 @@ if __name__ == "__main__":
     max_videos_per_batch = 50
     max_trending_videos = 1000
     regions = ["US", "UK", "BR", "DE", "FR", "MX"]
+    dataframes_list = []
     for region_code in regions:
         print(f"Getting trending videos for {region_code}")
 
@@ -35,22 +36,26 @@ if __name__ == "__main__":
                 'comment_count': int(video['statistics'].get('commentCount', 0)),
                 'published_at': video['snippet'].get('publishedAt'),
                 'channel_id': video['snippet'].get('channelId'),
+                'channel_title': video['snippet'].get('channelTitle'),
                 'published_after': published_after,
             }
             results.append(vid_info)
         df = pd.DataFrame(results)
         df['region_code'] = region_code
+        dataframes_list.append(df)
 
-        # TODO: overwrite partition masked by region_code
-        # Upload to BigQuery
-        bigquery_client = BigQueryClient(project_id="sandbox-381517")
-        df['dt'] = datetime.today()
-        df['dt'] = pd.to_datetime(df['dt'])
-        bigquery_client.upload_dataframe(
-            dataset_id="youtube",
-            table_id="trending",
-            df=df,
-            overwrite_partition=False,
-            delete_table=False,
-            partition_field="dt"
-        )
+    df = pd.concat(dataframes_list)
+
+    # TODO: overwrite partition masked by region_code
+    # Upload to BigQuery
+    bigquery_client = BigQueryClient(project_id="sandbox-381517")
+    df['dt'] = datetime.today()
+    df['dt'] = pd.to_datetime(df['dt'])
+    bigquery_client.upload_dataframe(
+        dataset_id="youtube",
+        table_id="trending",
+        df=df,
+        overwrite_partition=True,
+        delete_table=False,
+        partition_field="dt"
+    )

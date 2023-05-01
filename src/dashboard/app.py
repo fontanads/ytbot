@@ -1,7 +1,9 @@
+import pandas as pd
 import streamlit as st
 import altair as alt
 from datetime import datetime, timedelta
 from src.cloud.bigquery import BigQueryClient
+from src.dashboard.charts import ChannelCharts
 
 
 # function to download the data from BigQuery
@@ -28,27 +30,6 @@ def download_table(country_code, date_range, dataset_id="youtube", table_id="tre
     return table
 
 
-# Define functions to create charts
-def view_count_chart(df, max_videos):
-    df = df.sort_values(by='view_count', ascending=False).head(max_videos)
-    chart = alt.Chart(df).mark_bar().encode(
-        x='view_count',
-        y=alt.Y('title', sort='-x')
-    ).properties(title=f'Top {max_videos} Most Viewed Videos')
-    return chart
-
-
-def like_count_chart(df):
-    df = df.groupby('channel_id').agg({'like_count': 'sum', 'title': 'count'}).reset_index()
-    df = df.sort_values(by='like_count', ascending=False).head(5)
-    chart = alt.Chart(df).mark_bar().encode(
-        x='like_count',
-        y=alt.Y('channel_id', sort='-x'),
-        tooltip=['channel_id', 'like_count', 'title']
-    ).properties(title='Top 5 Channels by Like Count')
-    return chart
-
-
 # Main function
 def main():
     # Set up page
@@ -57,10 +38,10 @@ def main():
     st.write('This dashboard has been created using Chat GPT in collaboration with the author.')
 
     # Get user input
-    countries = ["US", "UK", "BR", "DE", "FR", "MX"]
+    countries = ["UK", "US", "BR", "DE", "FR", "MX"]
     country_code = st.sidebar.selectbox('Select a country code:', countries)
     end_date = datetime.now().date()
-    start_date = st.date_input('Select start date:', value=(end_date - timedelta(days=7)))
+    start_date = st.sidebar.date_input('Select start date:', value=(end_date - timedelta(days=7)))
     if start_date > end_date:
         st.error('Error: Start date must be before end date.')
         return
@@ -74,21 +55,32 @@ def main():
     date_range = [start_date, end_date]
     # Download data from BigQuery
     df = download_table(country_code, date_range)
-
-    # Divide the page into two columns
-    col1, col2 = st.columns(2)
+    df['published_at'] = pd.to_datetime(df['published_at'], format='%Y-%m-%d')
 
     # Create charts
-    # TODO: there are repeated rows in the dataset, find out why and fix it
-    max_videos = st.slider('Select max number of videos to show:', min_value=5, max_value=20, value=10)
-    view_count_chart_obj = view_count_chart(df, max_videos=max_videos)
-    col1.altair_chart(view_count_chart_obj, use_container_width=True)
-    col1.write(f'The above chart shows the top {max_videos} most viewed videos in {country_code} between {start_date} and {end_date}.')
+    charts = ChannelCharts(df)
 
-    # Second chart: Top channels by like count
-    like_count_chart_obj = like_count_chart(df)
-    col2.altair_chart(like_count_chart_obj, use_container_width=True)
-    col2.write('The above chart shows the top 5 channels by total like count for videos in the selected date range.')
+    max_videos = st.sidebar.slider('Select max number of videos to show:', min_value=5, max_value=20, value=10)
+    max_channels = st.sidebar.slider('Select max number of channels to show:', min_value=1, max_value=10, value=5)
+
+    c1 = charts.create_view_count_chart(max_videos=max_videos).properties(title="", width=600)
+    c2 = charts.create_like_count_chart(max_channels=max_channels).properties(title="", width=600, height=200)
+    hchart = (c1 & c2)
+    st.altair_chart(hchart)
+
+    # Divide the page into two columns
+    # col1, col2 = st.columns(2)
+    # with col1:
+    #     max_videos = st.slider('Select max number of videos to show:', min_value=5, max_value=20, value=10)
+    #     view_count_chart = charts.create_view_count_chart(max_videos=max_videos)
+    #     st.altair_chart(view_count_chart, use_container_width=True)
+    #     st.write(f'The above chart shows the top {max_videos} most viewed videos in {country_code} between {start_date} and {end_date}.')
+
+    # with col2:
+    #     max_channels = st.slider('Select max number of channels to show:', min_value=1, max_value=10, value=5)
+    #     like_count_chart = charts.create_like_count_chart(max_channels=max_channels)
+    #     st.altair_chart(like_count_chart, use_container_width=True)
+    #     st.write('The above chart shows the top 5 channels by total like count for videos in the selected date range.')
 
 
 if __name__ == '__main__':
