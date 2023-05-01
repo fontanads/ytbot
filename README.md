@@ -1,7 +1,8 @@
 # YouTube Analytics Tool
 
+See the source code here: [https://github.com/fontanads/ytbot](https://github.com/fontanads/ytbot).  
+
 This is a personal project experimenting with the YouTube API.  
-See the source code here: [https://github.com/fontanads/ytbot](https://github.com/fontanads/ytbot)  
 This was made to practice and for fun, so don't expect much from it, it is a WIP without a deadline.  
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/CENftD5GBHo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
